@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#4f46e5" />
+    <meta name="description" content="An offline course with progress stored on your device." />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="icon" href="icon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="styles.css" />
+    <title>LearnKeep — Offline Course</title>
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="#top" aria-label="LearnKeep home"><span>✦</span> LearnKeep</a>
+        <div class="save-state" id="saveState" aria-live="polite"><i></i> Saved on this device</div>
+      </header>
+
+      <section class="hero" id="top">
+        <p class="eyebrow">Offline learning, kept safe</p>
+        <h1>Build your web foundation.</h1>
+        <p class="intro">A short, practical course on the building blocks of the web. Your lesson progress and quiz scores stay with you—even offline.</p>
+        <div class="progress-card">
+          <div class="progress-heading"><span id="progressLabel">0 of 4 lessons complete</span><strong id="progressPercent">0%</strong></div>
+          <div class="progress-track"><div id="progressBar"></div></div>
+        </div>
+      </section>
+
+      <section class="course-layout" aria-label="Course content">
+        <aside class="lesson-nav">
+          <p class="nav-label">Course content</p>
+          <div id="lessonList"></div>
+        </aside>
+        <article class="lesson-panel" id="lessonPanel"></article>
+      </section>
+
+      <section class="auto-save-note" aria-label="Automatic saving">
+        <span class="auto-save-icon">✓</span>
+        <div><strong>Your progress is saved automatically</strong><p>Close the app anytime. When you come back, your lessons and quiz scores will be right where you left them.</p></div>
+      </section>
+    </main>
+    <footer>LearnKeep works offline after your first visit.</footer>
+    <script src="app.js"></script>
+  </body>
+</html>
