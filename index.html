@@ -4,9 +4,12 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#4f46e5" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="description" content="An offline course with progress stored on your device." />
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="icon" href="icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="icon-192.png" />
     <link rel="stylesheet" href="styles.css" />
     <title>LearnKeep — Offline Course</title>
   </head>
@@ -14,7 +17,10 @@
     <main class="app-shell">
       <header class="topbar">
         <a class="brand" href="#top" aria-label="LearnKeep home"><span>✦</span> LearnKeep</a>
-        <div class="save-state" id="saveState" aria-live="polite"><i></i> Saved on this device</div>
+        <div class="topbar-actions">
+          <button class="install-button hidden" id="installButton" type="button">Install app</button>
+          <div class="save-state" id="saveState" aria-live="polite"><i></i> Saved on this device</div>
+        </div>
       </header>
 
       <section class="hero" id="top">
@@ -37,7 +43,7 @@
 
       <section class="auto-save-note" aria-label="Automatic saving">
         <span class="auto-save-icon">✓</span>
-        <div><strong>Your progress is saved automatically</strong><p>Close the app anytime. When you come back, your lessons and quiz scores will be right where you left them.</p></div>
+        <div><strong>Your progress is saved automatically</strong><p>Close the app anytime. When you come back, your lessons and quiz scores will be right where you left them.</p><button class="file-storage-button" id="fileStorageButton">Save a recovery file in Documents</button><small id="fileStorageStatus"></small></div>
       </section>
     </main>
     <footer>LearnKeep works offline after your first visit.</footer>

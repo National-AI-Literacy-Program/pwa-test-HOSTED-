@@ -7,10 +7,13 @@ const COURSE = [
 const KEY = "learnkeep-course-progress";
 let state = { version: 1, courseId: "web-foundation", updatedAt: null, completedLessons: [], quizScores: {} };
 let current = 0;
+let progressFileHandle = null;
+let deferredPrompt = null;
 const $ = (id) => document.getElementById(id);
 
 function load() { try { const saved = JSON.parse(localStorage.getItem(KEY)); if (saved && saved.courseId === state.courseId) state = { ...state, ...saved, completedLessons: saved.completedLessons || [], quizScores: saved.quizScores || {} }; } catch { localStorage.removeItem(KEY); } }
-function save() { state.updatedAt = new Date().toISOString(); $("saveState").classList.add("saving"); $("saveState").innerHTML = "<i></i> Saving…"; localStorage.setItem(KEY, JSON.stringify(state)); setTimeout(() => { $("saveState").classList.remove("saving"); $("saveState").innerHTML = "<i></i> Saved on this device"; }, 250); }
+async function writeProgressFile() { if (!progressFileHandle) return; try { const writable = await progressFileHandle.createWritable(); await writable.write(JSON.stringify(state, null, 2)); await writable.close(); $("fileStorageStatus").textContent = " Recovery file updated automatically."; } catch { progressFileHandle = null; $("fileStorageStatus").textContent = " Permission was unavailable; using device storage."; } }
+function save() { state.updatedAt = new Date().toISOString(); $("saveState").classList.add("saving"); $("saveState").innerHTML = "<i></i> Saving…"; localStorage.setItem(KEY, JSON.stringify(state)); writeProgressFile(); setTimeout(() => { $("saveState").classList.remove("saving"); $("saveState").innerHTML = "<i></i> Saved on this device"; }, 250); }
 function complete(index) { if (!state.completedLessons.includes(index)) { state.completedLessons.push(index); save(); } render(); }
 function renderNav() { $("lessonList").innerHTML = COURSE.map((lesson, i) => `<button class="lesson-item ${i === current ? "active" : ""} ${state.completedLessons.includes(i) ? "done" : ""}" data-lesson="${i}"><span class="num">${state.completedLessons.includes(i) ? "✓" : i + 1}</span><span>${lesson.title}</span></button>`).join(""); document.querySelectorAll("[data-lesson]").forEach((button) => button.onclick = () => { current = Number(button.dataset.lesson); render(); }); }
 function renderLesson() { const lesson = COURSE[current]; const done = state.completedLessons.includes(current); let content = `<p class="lesson-kicker">Lesson ${current + 1} of ${COURSE.length}</p><h2>${lesson.title}</h2><p>${lesson.body}</p><p class="key-point">${lesson.point}</p>`;
@@ -19,4 +22,42 @@ function renderLesson() { const lesson = COURSE[current]; const done = state.com
   document.querySelectorAll("[data-answer]").forEach((button) => button.onclick = () => { const selected = Number(button.dataset.answer); state.quizScores.finalCheck = { selected, correct: selected === lesson.quiz.answer, answeredAt: new Date().toISOString() }; complete(current); }); }
 function renderProgress() { const completeCount = state.completedLessons.length; const percent = Math.round((completeCount / COURSE.length) * 100); $("progressLabel").textContent = `${completeCount} of ${COURSE.length} lessons complete`; $("progressPercent").textContent = `${percent}%`; $("progressBar").style.width = `${percent}%`; }
 function render() { renderNav(); renderLesson(); renderProgress(); }
-load(); render(); if ("serviceWorker" in navigator) window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js"));
+load(); render();
+
+function enableInstallPrompt() {
+  const installButton = $("installButton");
+  if (!installButton) return;
+  installButton.classList.remove("hidden");
+  installButton.addEventListener("click", async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === "accepted") {
+      installButton.textContent = "Installed";
+      installButton.disabled = true;
+    }
+    deferredPrompt = null;
+    installButton.classList.add("hidden");
+  });
+}
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js", { scope: "./" }));
+}
+
+window.addEventListener("beforeinstallprompt", (event) => {
+  event.preventDefault();
+  deferredPrompt = event;
+  enableInstallPrompt();
+});
+
+window.addEventListener("appinstalled", () => {
+  const installButton = $("installButton");
+  if (installButton) {
+    installButton.textContent = "Installed";
+    installButton.disabled = true;
+    installButton.classList.add("hidden");
+  }
+});
+
+$("fileStorageButton").onclick = async () => { if (!window.showSaveFilePicker) { $("fileStorageStatus").textContent = " This browser does not support direct file saving."; return; } try { progressFileHandle = await window.showSaveFilePicker({ suggestedName: "learnkeep-progress.json", types: [{ description: "Progress JSON", accept: { "application/json": [".json"] } }] }); await writeProgressFile(); $("fileStorageButton").textContent = "Recovery file connected"; } catch { $("fileStorageStatus").textContent = " File selection cancelled."; } };
